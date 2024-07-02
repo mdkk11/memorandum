@@ -1,0 +1,44 @@
+# deps
+FROM node:21-alpine AS deps
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+# builder
+FROM node:21 AS builder
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
+RUN npx prisma generate
+RUN npm run build
+
+# runner
+FROM mcr.microsoft.com/playwright:v1.42.1-focal AS runner
+
+WORKDIR /app
+
+COPY --from=builder /app/package.json package.json
+COPY --from=builder /app/public public
+COPY --from=builder /app/.next .next
+COPY --from=builder /app/mocks mocks
+COPY --from=builder /app/prisma prisma
+COPY --from=builder /app/e2e e2e
+COPY --from=builder /app/playwright.config.ts playwright.config.ts
+
+EXPOSE 3000
+
+ENV AUTH_SECRET=MwZLGY/6J4GH9lsethLssS7Z2ePtlbSEkd+xObJv+7C/
+ENV CI=true
+ENV PORT=3000
+
+CMD ["npm", "run", "docker:e2e:start"]

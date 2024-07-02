@@ -1,0 +1,36 @@
+{
+  "extends": ["eslint:recommended", "next/core-web-vitals", "plugin:tailwindcss/recommended", "plugin:import/recommended", "prettier"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["import-access", "unused-imports"],
+  "rules": {
+    "import-access/jsdoc": ["error"],
+    "unused-imports/no-unused-imports": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "parent", "sibling", "index", "object", "type"],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "builtin",
+            "position": "before"
+          },
+          {
+            "pattern": "@/**",
+            "group": "parent",
+            "position": "before"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["builtin"],
+        "alphabetize": {
+          "order": "asc"
+        },
+        "newlines-between": "never"
+      }
+    ],
+    "react/jsx-sort-props": "error"
+  }
+}
